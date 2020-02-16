@@ -97,10 +97,13 @@ class NewmanRequest implements INewmanRequest {
   }
 }
 
-class NewmanCollectionItem implements INewmanItem {
+export class NewmanCollectionItem implements INewmanItem {
   item: Item;
   constructor(item: ItemDefinition) {
     this.item = new Item(item);
+  }
+  static new(name: string): NewmanCollectionItem {
+    return new NewmanCollectionItem({ name });
   }
   request(request: RequestDefinition): INewmanRequest {
     Object.assign(this.item.request, request);
@@ -142,5 +145,8 @@ export class NewmanCollection {
     let item = new NewmanCollectionItem({ name });
     this.collection.items.append(item.item);
     return item;
+  }
+  set items(items: Array<NewmanCollectionItem>) {
+    items.forEach(item => this.collection.items.append(item.item));
   }
 }

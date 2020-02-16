@@ -1,0 +1,8 @@
+{
+  "files": ["index.ts"],
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "ES2020",
+    "module": "CommonJS"
+  }
+}

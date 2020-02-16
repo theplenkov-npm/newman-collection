@@ -1,0 +1,15 @@
+{
+  "name": "newman-collection",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/postman-collection": "file:./@types/postman-collection",
+    "postman-collection": "^3.5.5"
+  }
+}

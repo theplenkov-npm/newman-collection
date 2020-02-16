@@ -102,3 +102,12 @@ dist
 
 # TernJS port file
 .tern-port
+
+.vscode
+yarn.lock
+
+/@types/postman-collection/*
+!/@types/postman-collection/index.d.ts
+
+/index.js
+/index.js.map

@@ -3,23 +3,30 @@ include:
     file: /typescript/.gitlab-ci.yml
 
 stages:
-  - deploy
   - test
+  - deploy
 
-test:collection:
-  image: postman/newman
+test:collection:build:
   stage: test
+  extends: .ts
   script:
     - npm run test:collection
-    - newman run test/results/postman-echo.collection.json
   artifacts:
     untracked: false
     expire_in: 30 days
     paths:
       - test/results
 
+test:collection:run:
+  image: postman/newman
+  stage: test
+  script:
+    - run test/results/postman-echo.collection.json
+  dependencies:
+    - test:collection:build
+
 test:newman:
-  image: node:alpine
+  extends: .ts
   stage: test
   script:
     - npm run test:newman

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:collection": "node ./test/save-collection.js",
+    "test:newman": "node ./test/run-newman.js",
     "postversion": "git push --follow-tags"
   },
   "author": "",

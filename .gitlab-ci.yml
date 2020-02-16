@@ -1,3 +1,25 @@
 include:
   - project: theplenkov-npm/npm-cicd
     file: /typescript/.gitlab-ci.yml
+
+stages:
+  - build
+  - test
+
+test:collection:
+  image: postman/newman
+  stage: test
+  script:
+    - npm run test:collection
+    - newman run test/results/postman-echo.collection.json
+  artifacts:
+    untracked: false
+    expire_in: 30 days
+    paths:
+      - test/results
+
+test:newman:
+  image: node:alpine
+  stage: test
+  script:
+    - npm run test:newman

@@ -3,7 +3,7 @@ include:
     file: /typescript/.gitlab-ci.yml
 
 stages:
-  - build
+  - deploy
   - test
 
 test:collection:

@@ -1,8 +1,6 @@
 const { NewmanCollectionItem } = require("../../index");
 
-module.exports = NewmanCollectionItem.new("Test POST request");
-
-module.exports
+module.exports = NewmanCollectionItem.new("Test POST request")
   .post("https://postman-echo.com/post")
   .headers({ "Content-Type": "text/plain" })
   .body("test")

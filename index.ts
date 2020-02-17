@@ -13,9 +13,9 @@ interface INewmanEvents {
   test: void;
 }
 
-interface INewmanEventEmitter {
-  on(events: INewmanEvents): INewmanEventEmitter;
-}
+// interface INewmanEventEmitter {
+//   on(events: INewmanEvents): INewmanEventEmitter;
+// }
 
 interface INewmanRequestAuthBasic {
   username: string;
@@ -30,9 +30,9 @@ interface INewmanPmAPI {
   test(desription: string, callback: Function): INewmanRequest;
 }
 
-interface INewmanRequest extends INewmanEventEmitter {
+interface INewmanRequest extends INewmanItemElement {
   request: Request;
-  item: Item;
+  postman_item: Item;
   body(body: string): INewmanRequest;
   on(events: INewmanEvents): INewmanRequest;
   headers(headers: object): INewmanRequest;
@@ -44,7 +44,12 @@ interface NewmanRequestCall {
   (sUrl: string): INewmanRequest;
 }
 
-interface INewmanItem {
+interface INewmanItemElement {
+  //extends INewmanEventEmitter
+  item: INewmanItem;
+}
+
+interface INewmanItem extends INewmanItemElement {
   get: NewmanRequestCall;
   post: NewmanRequestCall;
   head: NewmanRequestCall;
@@ -52,6 +57,7 @@ interface INewmanItem {
   put: NewmanRequestCall;
   delete: NewmanRequestCall;
   patch: NewmanRequestCall;
+  postman_item: Item;
 }
 
 //function valueMap(values:object):{}
@@ -74,8 +80,12 @@ class NewmanRequestAuth implements INewmanRequestAuth {
 
 class NewmanRequest implements INewmanRequest {
   request: Request;
-  item: Item;
-  constructor(request: Request, item: Item) {
+  get postman_item() {
+    return this.item.postman_item;
+  }
+  item: INewmanItem;
+
+  constructor(request: Request, item: INewmanItem) {
     this.request = request;
     this.item = item;
   }
@@ -85,7 +95,7 @@ class NewmanRequest implements INewmanRequest {
   // },
   on(events: INewmanEvents): INewmanRequest {
     Object.keys(events).forEach(key => {
-      this.item.events.append(
+      this.postman_item.events.append(
         new Event({
           listen: key,
           script: {
@@ -115,7 +125,7 @@ class NewmanRequest implements INewmanRequest {
   get pm(): INewmanPmAPI {
     return {
       test: (description, callback) => {
-        this.item.events.append(
+        this.postman_item.events.append(
           new Event({
             listen: "test",
             script: {
@@ -133,16 +143,19 @@ class NewmanRequest implements INewmanRequest {
 }
 
 export class NewmanCollectionItem implements INewmanItem {
-  item: Item;
-  constructor(item: ItemDefinition) {
-    this.item = new Item(item);
+  postman_item: Item;
+  constructor(def: ItemDefinition) {
+    this.postman_item = new Item(def);
+  }
+  get item() {
+    return this;
   }
   static new(name: string): NewmanCollectionItem {
     return new NewmanCollectionItem({ name });
   }
   request(request: RequestDefinition): INewmanRequest {
-    Object.assign(this.item.request, request);
-    return new NewmanRequest(this.item.request, this.item);
+    Object.assign(this.postman_item.request, request);
+    return new NewmanRequest(this.postman_item.request, this);
   }
   get(url: string) {
     return this.request({ url, method: "GET" });
@@ -173,15 +186,28 @@ export class NewmanCollectionItem implements INewmanItem {
 
 export class NewmanCollection {
   collection: Collection;
-  constructor(collection: CollectionDefinition) {
-    this.collection = new Collection(collection);
+  constructor(
+    collection?: CollectionDefinition | Array<INewmanItemElement>,
+    items?: Array<INewmanItemElement>
+  ) {
+    this.collection = new Collection(
+      typeof collection === "object"
+        ? (collection as CollectionDefinition)
+        : undefined
+    );
+    this.items = Array.isArray(collection)
+      ? (collection as Array<NewmanCollectionItem>)
+      : items;
   }
   item(name: string): NewmanCollectionItem {
     let item = new NewmanCollectionItem({ name });
-    this.collection.items.append(item.item);
+    this.collection.items.append(item.postman_item);
     return item;
   }
-  set items(items: Array<NewmanCollectionItem>) {
-    items.forEach(item => this.collection.items.append(item.item));
+  set items(items: Array<INewmanItemElement>) {
+    items &&
+      items.forEach(element =>
+        this.collection.items.append(element.item.postman_item)
+      );
   }
 }

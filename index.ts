@@ -18,14 +18,26 @@ interface INewmanEventEmitter {
 }
 
 interface INewmanRequestAuthBasic {
-  user: string;
+  username: string;
   password: string;
 }
 
+interface INewmanRequestAuth {
+  basic(basic: INewmanRequestAuthBasic): void;
+}
+
+interface INewmanPmAPI {
+  test(desription: string, callback: Function): INewmanRequest;
+}
+
 interface INewmanRequest extends INewmanEventEmitter {
+  request: Request;
+  item: Item;
   body(body: string): INewmanRequest;
   on(events: INewmanEvents): INewmanRequest;
   headers(headers: object): INewmanRequest;
+  auth: INewmanRequestAuth;
+  pm: INewmanPmAPI;
 }
 
 interface NewmanRequestCall {
@@ -44,17 +56,19 @@ interface INewmanItem {
 
 //function valueMap(values:object):{}
 
-class NewmanRequestAuth {
-  auth: RequestAuthDefinition;
-  constructor(auth: RequestAuthDefinition) {
-    this.auth = auth;
+class NewmanRequestAuth implements INewmanRequestAuth {
+  request: INewmanRequest;
+  constructor(request: INewmanRequest) {
+    this.request = request;
   }
   basic(basic: INewmanRequestAuthBasic) {
-    // this.auth.
-    //     Object.assign(this.auth, {
-    //       type: "basic",
-    //       basic: Object.keys(basic).map()
-    //     });
+    let { request } = this.request;
+    request.authorizeUsing({ type: "basic" });
+    request.auth.update(
+      Object.keys(basic).map(key => ({ key, value: basic[key] }))
+    );
+
+    return this.request;
   }
 }
 
@@ -94,6 +108,27 @@ class NewmanRequest implements INewmanRequest {
       this.request.addHeader({ key, value: headers[key] })
     );
     return this;
+  }
+  get auth(): INewmanRequestAuth {
+    return new NewmanRequestAuth(this);
+  }
+  get pm(): INewmanPmAPI {
+    return {
+      test: (description, callback) => {
+        this.item.events.append(
+          new Event({
+            listen: "test",
+            script: {
+              exec: [`pm.test(\"${description}\", ${callback.toString()});`]
+                .map(code => code.split("\r\n"))
+                .flat()
+            }
+          })
+        );
+
+        return this;
+      }
+    };
   }
 }
 

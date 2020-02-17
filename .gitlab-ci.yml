@@ -3,11 +3,12 @@ include:
     file: /typescript/.gitlab-ci.yml
 
 stages:
-  - test
+  - test:node
+  - test:cli
   - deploy
 
 test:collection:build:
-  stage: test
+  stage: test:node
   extends: .ts
   script:
     - npm run test:collection
@@ -19,14 +20,14 @@ test:collection:build:
 
 test:collection:run:
   image: postman/newman
-  stage: test
+  stage: test:cli
   script:
     - run test/results/postman-echo.collection.json
-  dependencies:
+  needs:
     - test:collection:build
 
 test:newman:
   extends: .ts
-  stage: test
+  stage: test:node
   script:
     - npm run test:newman

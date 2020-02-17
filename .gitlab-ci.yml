@@ -20,10 +20,12 @@ test:collection:build:
       - test/results
 
 test:collection:run:
-  image: postman/newman
+  image:
+    name: postman/newman
+    entrypoint: [""]
   stage: test:cli
   script:
-    - run test/results/postman-echo.collection.json
+    - newman run test/results/postman-echo.collection.json
   needs:
     - test:collection:build
 

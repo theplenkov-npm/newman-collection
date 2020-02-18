@@ -1,6 +1,6 @@
 # Newman/Postman collection generator
 
-> \${DESCRIPTION}
+> This module will bring your postman/newman experience to a next level
 
 [![NPM Version][npm-image]][npm-url]
 

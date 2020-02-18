@@ -25,9 +25,8 @@ test:collection:run:
     entrypoint: [""]
   stage: test:cli
   script:
-    - newman run test/results/postman-echo.collection.json
-  needs:
-    - test:collection:build
+    - newman run test/results/postman-echo.collection.json --globals test/results/postman-echo.globals.json
+  needs: ["test:collection:build"]
 
 test:newman:
   extends: .ts

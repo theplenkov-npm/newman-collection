@@ -5,3 +5,10 @@ fs.writeFileSync(
   "test/results/postman-echo.collection.json",
   JSON.stringify(collection.toJSON())
 );
+
+fs.writeFileSync(
+  "test/results/postman-echo.globals.json",
+  JSON.stringify({
+    values: [{ key: "host", value: "https://postman-echo.com" }]
+  })
+);

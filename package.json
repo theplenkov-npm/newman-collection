@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^13.7.1",
-    "@types/postman-collection": "file:./@types/postman-collection",
     "postman-collection": "^3.5.5"
   },
   "devDependencies": {

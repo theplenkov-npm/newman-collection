@@ -1,10 +1,14 @@
 const { Collection, Item } = require("newman-collection");
+const newman = require("newman");
 
 let oCollection = new Collection([
   // test GET
   new Item("Test GET request")
     .get("https://postman-echo.com/get?foo1=bar1&foo2=bar2")
-    .pm.test("Endpoint is reached", () => {
+    .pm.test("This is test A", () => {
+      pm.response.to.be.ok;
+    })
+    .pm.test("This is test B", () => {
       pm.response.to.be.ok;
     }),
   // test POST
@@ -23,3 +27,8 @@ let oCollection = new Collection([
       pm.response.to.have.jsonBody("authenticated", true);
     })
 ]);
+
+newman.run({
+  collection: oCollection.collection,
+  reporters: ["cli"]
+});

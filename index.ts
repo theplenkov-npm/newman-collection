@@ -142,16 +142,15 @@ class NewmanRequest implements INewmanRequest {
   }
 }
 
-export class NewmanCollectionItem implements INewmanItem {
+class NewmanCollectionItem implements INewmanItem {
   postman_item: Item;
-  constructor(def: ItemDefinition) {
-    this.postman_item = new Item(def);
+  constructor(def: ItemDefinition | string) {
+    this.postman_item = new Item(
+      typeof def === "string" ? { name: def } : (def as ItemDefinition)
+    );
   }
   get item() {
     return this;
-  }
-  static new(name: string): NewmanCollectionItem {
-    return new NewmanCollectionItem({ name });
   }
   request(request: RequestDefinition): INewmanRequest {
     Object.assign(this.postman_item.request, request);
@@ -184,7 +183,7 @@ export class NewmanCollectionItem implements INewmanItem {
   // }
 }
 
-export class NewmanCollection {
+class NewmanCollection {
   collection: Collection;
   constructor(
     collection?: CollectionDefinition | Array<INewmanItemElement>,
@@ -199,11 +198,11 @@ export class NewmanCollection {
       ? (collection as Array<NewmanCollectionItem>)
       : items;
   }
-  item(name: string): NewmanCollectionItem {
-    let item = new NewmanCollectionItem({ name });
-    this.collection.items.append(item.postman_item);
-    return item;
-  }
+  // item(name: string): NewmanCollectionItem {
+  //   let item = new NewmanCollectionItem({ name });
+  //   this.collection.items.append(item.postman_item);
+  //   return item;
+  // }
   set items(items: Array<INewmanItemElement>) {
     items &&
       items.forEach(element =>
@@ -211,3 +210,7 @@ export class NewmanCollection {
       );
   }
 }
+
+export { NewmanCollection as Collection, NewmanCollectionItem as Item };
+
+//"export {NewmanCollection as Collection} from './NewmanCollection'

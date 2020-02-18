@@ -1,6 +1,6 @@
-const { NewmanCollection } = require("../../index");
+const { Collection } = require("../../index");
 
-module.exports = new NewmanCollection([
+module.exports = new Collection([
   require("./get"),
   require("./post"),
   require("./basic_auth")

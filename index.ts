@@ -5,50 +5,55 @@ import {
   ItemDefinition,
   Request,
   RequestDefinition,
-  RequestAuthDefinition,
   Event
 } from "postman-collection";
 
-interface INewmanEvents {
-  test: void;
+// postman script types
+// https://github.com/postmanlabs/newman#newmanrunevents
+interface INewmanScript {
+  test(desription: string, callback: Function): INewmanRequest;
+  prerequest(desription: string, callback: Function): INewmanRequest;
 }
 
-// interface INewmanEventEmitter {
-//   on(events: INewmanEvents): INewmanEventEmitter;
-// }
-
+// Basic Auth data
 interface INewmanRequestAuthBasic {
   username: string;
   password: string;
 }
 
+// auth interface
 interface INewmanRequestAuth {
   basic(basic: INewmanRequestAuthBasic): void;
 }
 
+// pm interface ( basically add-on to ) on.test
 interface INewmanPmAPI {
   test(desription: string, callback: Function): INewmanRequest;
 }
 
+// Request entity
 interface INewmanRequest extends INewmanItemElement {
   request: Request;
   postman_item: Item;
   body(body: string): INewmanRequest;
-  on(events: INewmanEvents): INewmanRequest;
+  on: INewmanScript;
+  //on(events: INewmanEvents): INewmanRequest;
   headers(headers: object): INewmanRequest;
   auth: INewmanRequestAuth;
   pm: INewmanPmAPI;
 }
 
+// Request factory
 interface NewmanRequestCall {
   (sUrl: string): INewmanRequest;
 }
 
+// Element which can have reference to item ( including item itself )
 interface INewmanItemElement {
-  //extends INewmanEventEmitter
   item: INewmanItem;
 }
 
+// Newman Item interface
 interface INewmanItem extends INewmanItemElement {
   get: NewmanRequestCall;
   post: NewmanRequestCall;
@@ -60,8 +65,7 @@ interface INewmanItem extends INewmanItemElement {
   postman_item: Item;
 }
 
-//function valueMap(values:object):{}
-
+// auth instance
 class NewmanRequestAuth implements INewmanRequestAuth {
   request: INewmanRequest;
   constructor(request: INewmanRequest) {
@@ -78,6 +82,39 @@ class NewmanRequestAuth implements INewmanRequestAuth {
   }
 }
 
+// script interface ( prerequest and test )
+class NewmanScript implements INewmanScript {
+  request: INewmanRequest;
+  constructor(request: INewmanRequest) {
+    this.request = request;
+  }
+  get postman_item() {
+    return this.request.postman_item;
+  }
+  private event(callback, type) {
+    this.postman_item.events.append(
+      new Event({
+        listen: "test",
+        script: {
+          exec: /(?<={).*(?=}$)/s
+            .exec(callback.toString())
+            .map(code => code.split("\r\n"))
+            .flat()
+        }
+      })
+    );
+
+    return this.request;
+  }
+  test(callback) {
+    return this.event(callback, "test");
+  }
+  prerequest(callback) {
+    return this.event(callback, "prerequest");
+  }
+}
+
+// request instance
 class NewmanRequest implements INewmanRequest {
   request: Request;
   get postman_item() {
@@ -89,25 +126,8 @@ class NewmanRequest implements INewmanRequest {
     this.request = request;
     this.item = item;
   }
-  // auth(auth: NewmanRequestAuth):NewmanRequest {
-  //   Object.assign(this.request.auth, auth);
-  //   return this;
-  // },
-  on(events: INewmanEvents): INewmanRequest {
-    Object.keys(events).forEach(key => {
-      this.postman_item.events.append(
-        new Event({
-          listen: key,
-          script: {
-            exec: /(?<={).*(?=}$)/s
-              .exec(events[key].toString())
-              .map(code => code.split("\r\n"))
-              .flat()
-          }
-        })
-      );
-    });
-    return this;
+  get on(): INewmanScript {
+    return new NewmanScript(this);
   }
   body(raw: string): INewmanRequest {
     this.request.update({ body: { mode: "raw", raw: raw } });
@@ -142,6 +162,7 @@ class NewmanRequest implements INewmanRequest {
   }
 }
 
+// Collection item
 class NewmanCollectionItem implements INewmanItem {
   postman_item: Item;
   constructor(def: ItemDefinition | string) {
@@ -177,12 +198,9 @@ class NewmanCollectionItem implements INewmanItem {
   patch(url: string) {
     return this.request({ url, method: "PATCH" });
   }
-  // on(events: INewmanEvents): NewmanItem {
-  //   debugger;
-  //   return this;
-  // }
 }
 
+// Collection
 class NewmanCollection {
   collection: Collection;
   constructor(
@@ -198,11 +216,6 @@ class NewmanCollection {
       ? (collection as Array<NewmanCollectionItem>)
       : items;
   }
-  // item(name: string): NewmanCollectionItem {
-  //   let item = new NewmanCollectionItem({ name });
-  //   this.collection.items.append(item.postman_item);
-  //   return item;
-  // }
   set items(items: Array<INewmanItemElement>) {
     items &&
       items.forEach(element =>
@@ -212,5 +225,3 @@ class NewmanCollection {
 }
 
 export { NewmanCollection as Collection, NewmanCollectionItem as Item };
-
-//"export {NewmanCollection as Collection} from './NewmanCollection'

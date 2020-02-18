@@ -173,7 +173,7 @@ class NewmanCollectionItem implements INewmanItem {
   get item() {
     return this;
   }
-  request(request: RequestDefinition): INewmanRequest {
+  private request(request: RequestDefinition): INewmanRequest {
     Object.assign(this.postman_item.request, request);
     return new NewmanRequest(this.postman_item.request, this);
   }

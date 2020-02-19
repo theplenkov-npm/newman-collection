@@ -14,7 +14,9 @@ npm i newman-collection
 
 The only feature this module brings is simplified minimalistic JS-like creation of the collection file.
 
-Newman is a tool developed by a postman team works with existing files or URL in CLI mode or with a model from [postman-collection][postman-collection] module as node.js module. This module is nothing more than decoration of postman-collection calls.
+Newman is a tool developed by a postman team which can run existing  collections . Having postman-collection SDK available we can already generate collections on the fly, however working with this library directly developer experience was not that great. Behind the idea of this module I have personal experience of working with Express.js (get/post/head/put/delete and other https methods), fetch Web API-like headers declaration and finally writing scripts as Javascript not like strings
+
+Same code with postman SDK will take more lines:
 
 ```js
 const { Collection, Item } = require("newman-collection");
@@ -62,7 +64,7 @@ newman.run({
 #### class Collection
 
 | method                                                                | description                                                                                                                                             |
-| :-------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|:--------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | _constructor_( _collection_?: CollectionDefinition , _items_?: Item ) | To create an instance you can provide collection definition from postman SDK. In addition to this list of items can be provided also                    |
 | _constructor_( items\*?: Item )                                       | You can omit definition part providing just array of items                                                                                              |
 | _set_ items(_items_: Item) {                                          | A setter method is also availabe to set items later                                                                                                     |
@@ -89,7 +91,7 @@ newman.run({
 
 ## Extensibility
 
-You can always use these classes to build your own calls and then reuse them across your scenarios
+You can always use these classes to build your own recipies and then reuse them across your scenarios
 
 ```js
 const { Collection, Item } = require("newman-collection");

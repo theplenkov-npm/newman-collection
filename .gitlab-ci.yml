@@ -33,3 +33,6 @@ test:newman:
   stage: test:node
   script:
     - npm run test:newman
+
+publish:
+  needs: ["test:newman"]

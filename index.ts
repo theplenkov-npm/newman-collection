@@ -7,6 +7,7 @@ import {
   RequestDefinition,
   Event
 } from "postman-collection";
+import { type } from "os";
 
 // Basic Auth data
 interface INewmanAuthBasic {
@@ -252,8 +253,17 @@ class NewmanRequest extends NewmanItemElement implements INewmanRequest {
   get on(): INewmanScript {
     return new NewmanScript(this);
   }
-  body(raw: string): INewmanRequest {
-    this.request.update({ body: { mode: "raw", raw: raw } });
+  body(body: string | object): INewmanRequest {
+    this.request.update({
+      body: {
+        mode: "raw",
+        raw:
+          typeof body === "object"
+            ? this.headers({ "Content-Type": "application/json" }) &&
+              JSON.stringify(body)
+            : body
+      }
+    });
     return this;
   }
   headers(headers: object): INewmanRequest {

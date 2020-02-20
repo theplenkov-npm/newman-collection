@@ -1,0 +1,55 @@
+@startuml
+interface INewmanAuthBasic {
+    +username: string
+    +password: string
+}
+interface INewmanAuth {
+    +basic(basic: INewmanAuthBasic): void
+}
+interface INewmanPmAPI {
+    +test(desription: string, callback: Function): INewmanRequest
+}
+interface INewmanCollectionElement {
+    +newman_collection: INewmanCollection
+    +auth: INewmanAuth
+}
+interface INewmanCollection extends INewmanCollectionElement {
+    +collection: any
+}
+interface INewmanItemElement extends INewmanCollectionElement {
+    +newman_item: INewmanItem
+    +item: any
+}
+
+interface INewmanItem extends INewmanItemElement {
+    +get: INewmanRequestFactory
+    +post: INewmanRequestFactory
+    +head: INewmanRequestFactory
+    +options: INewmanRequestFactory
+    +put: INewmanRequestFactory
+    +delete: INewmanRequestFactory
+    +patch: INewmanRequestFactory
+    +item: any
+}
+interface INewmanScript {
+    +test(desription: string, callback: Function): INewmanRequest
+    +prerequest(desription: string, callback: Function): INewmanRequest
+}
+interface INewmanRequest extends INewmanItemElement {
+    +request: any
+    +body(body: string): INewmanRequest
+    +on: INewmanScript
+    +headers(headers: object): INewmanRequest
+    +pm: INewmanPmAPI
+}
+
+INewmanCollection *-- INewmanItem
+INewmanCollectionElement o-- INewmanAuth
+INewmanRequest o-- INewmanAuth
+INewmanItem o-- INewmanAuth
+INewmanAuth o-- INewmanAuthBasic
+INewmanRequest o-- INewmanPmAPI
+INewmanRequest o-- INewmanScript
+
+
+@enduml

@@ -12,11 +12,12 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^16",
-    "postman-collection": "^4"
+    "postman-collection": "^4",
+    "postman-sandbox": "^4.0.8"
   },
   "devDependencies": {
     "newman": "^5",
-    "postman-sandbox": "^4.0.8",
-    "ts-node": "^10.8.1"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.4"
   }
 }

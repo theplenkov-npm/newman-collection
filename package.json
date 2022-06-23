@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build":"tsc",
     "test:collection": "ts-node ./test/save-collection.ts",
     "test:newman": "ts-node ./test/run-newman.ts",
     "postversion": "git push --follow-tags"

@@ -124,10 +124,6 @@ class OdataCall extends Item {
 }
 ```
 
-## CI/CD procedure
-
-This module also comes with Gitlab-based test automation which is used here before publishing npm module. However, you can use it also as your recipy in CI/CD procedure in a mix with nodejs module (test:newman task) or by using postman docker image (test:collection:run task)
-
 ## Important links:
 
 [Newman API - CLI/Node.js postman collections runner](https://github.com/postmanlabs/newman)

@@ -4,17 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:collection": "node ./test/save-collection.js",
-    "test:newman": "node ./test/run-newman.js",
+    "test:collection": "ts-node ./test/save-collection.ts",
+    "test:newman": "ts-node ./test/run-newman.ts",
     "postversion": "git push --follow-tags"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^13.7.1",
-    "postman-collection": "^3.5.5"
+    "@types/node": "^16",
+    "postman-collection": "^4"
   },
   "devDependencies": {
-    "newman": "^4.5.7"
+    "newman": "^5",
+    "postman-sandbox": "^4.0.8",
+    "ts-node": "^10.8.1"
   }
 }

@@ -1,13 +1,24 @@
+/// <reference path="node_modules/postman-collection/types/index.d.ts"/>
 import {
   Collection,
-  CollectionDefinition,
+  //CollectionDefinition,
   Item,
-  ItemDefinition,
+  //ItemDefinition,
   Request,
-  RequestDefinition,
-  Event
+  //RequestDefinition,
+  Event,
+  RequestAuth,
+  Script,
+  RequestBody,
 } from "postman-collection";
+
+type CollectionDefinition = Collection.definition;
+type ItemDefinition = Item.definition;
+type RequestDefinition = Request.definition;
+
+//import * as ps from "postman-collection/types";
 import { type } from "os";
+import { format } from "path";
 
 // Basic Auth data
 interface INewmanAuthBasic {
@@ -79,12 +90,12 @@ class NewmanCollectionAuth implements INewmanAuth {
   newman_collection: INewmanCollection;
   constructor(collection: INewmanCollection) {
     this.newman_collection = collection;
-    this.collection = { collection };
+    this.collection = collection.collection;
   }
   basic(basic) {
-    this.collection.authorizeUsing({ type: "basic" });
+    this.collection.authorizeRequestsUsing({ type: "basic" });
     this.collection.auth.update(
-      Object.keys(basic).map(key => ({ key, value: basic[key] }))
+      Object.keys(basic).map((key) => ({ key, value: basic[key] }))
     );
     return this.newman_collection;
   }
@@ -104,11 +115,20 @@ class NewmanAuth implements INewmanAuth {
   }
   basic(basic) {
     let { postman_element } = this;
+    let auth: RequestAuth;
 
-    postman_element.authorizeUsing({ type: "basic" });
-    postman_element.auth.update(
-      Object.keys(basic).map(key => ({ key, value: basic[key] }))
-    );
+    if (postman_element instanceof Collection) {
+      postman_element.authorizeRequestsUsing({ type: "basic" });
+      auth = postman_element.auth;
+    } else if (postman_element instanceof Item) {
+      postman_element.authorizeRequestUsing({ type: "basic" });
+      auth = postman_element.getAuth();
+    } else if (postman_element instanceof Request) {
+      postman_element.authorizeUsing({ type: "basic" });
+      auth = postman_element.auth;
+    }
+
+    auth.update(Object.keys(basic).map((key) => ({ key, value: basic[key] })));
     return this.newman_element;
   }
 }
@@ -121,7 +141,7 @@ class NewmanAuthCollection extends NewmanAuth {
   basic(basic) {
     this.collection.authorizeRequestsUsing(
       "basic",
-      Object.keys(basic).map(key => ({ key, value: basic[key] }))
+      Object.keys(basic).map((key) => ({ key, value: basic[key] }))
     );
     return this.newman_element;
   }
@@ -139,8 +159,10 @@ class NewmanCollectionElement implements INewmanCollectionElement {
 }
 
 // Collection
-class NewmanCollection extends NewmanCollectionElement
-  implements INewmanCollection {
+class NewmanCollection
+  extends NewmanCollectionElement
+  implements INewmanCollection
+{
   collection: Collection;
   constructor(
     collection?: CollectionDefinition | Array<INewmanItemElement>,
@@ -158,15 +180,17 @@ class NewmanCollection extends NewmanCollectionElement
   }
   set items(items: Array<INewmanItem>) {
     items &&
-      items.forEach(element => this.collection.items.append(element.item));
+      items.forEach((element) => this.collection.items.append(element.item));
   }
   get auth() {
     return new NewmanAuthCollection(this);
   }
 }
 
-class NewmanItemElement extends NewmanCollectionElement
-  implements INewmanItemElement {
+class NewmanItemElement
+  extends NewmanCollectionElement
+  implements INewmanItemElement
+{
   newman_item: INewmanItem;
   item: Item;
   // get item() {
@@ -179,13 +203,18 @@ class NewmanCollectionItem extends NewmanItemElement implements INewmanItem {
   //item: Item;
   constructor(def: ItemDefinition | string) {
     super();
-    this.item = new Item(
-      typeof def === "string" ? { name: def } : (def as ItemDefinition)
-    );
+
+    if (typeof def === "string") {
+      this.item = new Item();
+      this.item.name = def;
+    } else {
+      this.item = new Item(def);
+    }
   }
-  private request(request: RequestDefinition): INewmanRequest {
-    Object.assign(this.item.request, request);
-    return new NewmanRequest(this.item.request, this);
+  private request(def: Partial<RequestDefinition>): INewmanRequest {
+    let request = new NewmanRequest(def as RequestDefinition, this);
+    this.item.request = request.request;
+    return request;
   }
   get(url: string) {
     return this.request({ url, method: "GET" });
@@ -220,12 +249,12 @@ class NewmanScript implements INewmanScript {
     this.request.item.events.append(
       new Event({
         listen: "test",
-        script: {
+        script: new Script({
           exec: /(?<={).*(?=}$)/s
             .exec(callback.toString())
-            .map(code => code.split("\r\n"))
-            .flat()
-        }
+            .map((code) => code.split("\r\n"))
+            .flat(),
+        }),
       })
     );
     return this.request;
@@ -240,34 +269,40 @@ class NewmanScript implements INewmanScript {
 
 // request instance
 class NewmanRequest extends NewmanItemElement implements INewmanRequest {
-  get item() {
-    return this.newman_item.item;
-  }
   request: Request;
 
-  constructor(request: Request, item: INewmanItem) {
+  constructor(request: Request.definition, item: INewmanItem) {
     super();
-    this.request = request;
+    this.request = new Request(request);
     this.newman_item = item;
+    this.item = this.newman_item.item;
   }
   get on(): INewmanScript {
     return new NewmanScript(this);
   }
   body(body: string | object): INewmanRequest {
-    this.request.update({
-      body: {
-        mode: "raw",
-        raw:
-          typeof body === "object"
-            ? this.headers({ "Content-Type": "application/json" }) &&
-              JSON.stringify(body)
-            : body
-      }
+    // this.request.body.update({
+    //   mode: "raw",
+    //   raw:
+    //     typeof body === "object"
+    //       ? this.headers({ "Content-Type": "application/json" }) &&
+    //         JSON.stringify(body)
+    //       : body,
+    // });
+
+    this.request.body = new RequestBody({
+      mode: "raw",
+      raw:
+        typeof body === "object"
+          ? this.headers({ "Content-Type": "application/json" }) &&
+            JSON.stringify(body)
+          : body,
     });
+
     return this;
   }
   headers(headers: object): INewmanRequest {
-    Object.keys(headers).forEach(key =>
+    Object.keys(headers).forEach((key) =>
       this.request.addHeader({ key, value: headers[key] })
     );
     return this;
@@ -278,16 +313,16 @@ class NewmanRequest extends NewmanItemElement implements INewmanRequest {
         this.item.events.append(
           new Event({
             listen: "test",
-            script: {
+            script: new Script({
               exec: [`pm.test(\"${description}\", ${callback.toString()});`]
-                .map(code => code.split("\r\n"))
-                .flat()
-            }
+                .map((code) => code.split("\r\n"))
+                .flat(),
+            }),
           })
         );
 
         return this;
-      }
+      },
     };
   }
 }
